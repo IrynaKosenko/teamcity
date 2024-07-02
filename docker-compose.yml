@@ -1,33 +1,39 @@
-services:
+networks:
+  teamcity_network:
+    driver: bridge
+
+services:                                                                                                                                   M     
   teamcity:
-    image: jetbrains/teamcity-server:${TEAMCITY_VERSION}
+    image: jetbrains/teamcity-server
     user: root
     ports:
       - "8112:8111"
     volumes:
       - ./data_dir:/data/teamcity_server/datadir
       - ./teamcity-server-logs:/opt/teamcity/logs
+    networks:
+      - teamcity_network
 
-  teamcity-agent-1:
-    image: jetbrains/teamcity-agent:${TEAMCITY_VERSION}-linux-sudo
-    privileged: true
+  teamcity-agent:
+    image: jetbrains/teamcity-agent
     user: root
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      #- ./agents/agent-1/conf:/data/teamcity_agent/conf
     environment:
       - DOCKER_IN_DOCKER=start
       - SERVER_URL=http://teamcity:8111
-      - AGENT_NAME=agent-1
+      - AGENT_NAME=regular_agent
+    networks:
+      - teamcity_network
 
-  teamcity-agent-2:
-    image: jetbrains/teamcity-agent:${TEAMCITY_VERSION}-linux-sudo
-    privileged: true
+  teamcity-minimal-agent:
+    image: jetbrains/teamcity-minimal-agent
     user: root
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-#  - ./agents/agent-2/conf:/data/teamcity_agent/conf
     environment:
       - DOCKER_IN_DOCKER=start
       - SERVER_URL=http://teamcity:8111
-      - AGENT_NAME=agent-2
+      - AGENT_NAME=minimal-agent
+    networks:
+      - teamcity_network
